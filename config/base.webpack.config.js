@@ -3,9 +3,9 @@ module.exports = {
   entry: "./src/index.js",
   output: {
     path: __dirname + "/../dist",
-    filename: "pring-of-dom.js",
+    filename: "print-of-dom.js",
     library: {
-      // export: "default",
+      export: "default",
     },
   },
   module: {

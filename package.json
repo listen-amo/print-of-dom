@@ -5,7 +5,7 @@
   "main": "dist/print-of-dom.cj.js",
   "module": "dist/print-of-dom.module.js",
   "scripts": {
-    "dev": "webpack --config=./config/module.webpack.config.js --watch",
+    "dev": "webpack --config=./config/web.webpack.config.js --watch",
     "build": "npm run build:commonjs && npm run build:module && npm run build:web",
     "build:commonjs": "webpack --config=./config/commonjs.webpack.config.js",
     "build:module": "webpack --config=./config/module.webpack.config.js",
