@@ -4,8 +4,7 @@ module.exports = merge(base, {
   output: {
     filename: "print-of-dom.cj.js",
     library: {
-      export: "default",
-      type: "commonjs2",
+      type: "commonjs",
     },
   },
 });

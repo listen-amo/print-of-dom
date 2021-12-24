@@ -4,9 +4,6 @@ module.exports = {
   output: {
     path: __dirname + "/../dist",
     filename: "print-of-dom.js",
-    library: {
-      export: "default",
-    },
   },
   module: {
     rules: [
