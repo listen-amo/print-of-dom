@@ -1,7 +1,8 @@
 {
   "name": "print-of-dom",
   "version": "1.0.0",
-  "description": "",
+  "description": "单独的对一个DOM进行打印，并且可以进行修改，过滤，删除的处理",
+  "keywords": ["print", "print-dom"],
   "main": "dist/print-of-dom.cj.js",
   "module": "dist/print-of-dom.module.js",
   "scripts": {

@@ -51,8 +51,13 @@ export default class PrintOfDom {
       }
       return this.handler(originalNode, clonedNode, {
         cssText: this.getDomComputedCssText(originalNode),
+        className: originalNode.className,
       });
     });
+    if (!dom) {
+      Promise.reject("The root node cannot be empty.");
+      return;
+    }
     dom = this.wrapDoms(el, dom);
 
     // 3. iframe创建，目标DOM添加，样式相关标签复制
@@ -119,14 +124,17 @@ export default class PrintOfDom {
           return;
         }
 
-        const clonedNode = (originalNode.PRINT_OF_DOM_CLONEDOM = handler(
-          originalNode,
-          originalNode.cloneNode(false)
-        ));
-        if (!parent.$root) {
-          parent.PRINT_OF_DOM_CLONEDOM.appendChild(clonedNode);
+        const clonedNode = handler(originalNode, originalNode.cloneNode(false));
+
+        if (clonedNode) {
+          if (clonedNode.nodeType === Node.ELEMENT_NODE) {
+            originalNode.PRINT_OF_DOM_CLONEDOM = clonedNode;
+            elCache.push(originalNode);
+          }
+          if (!parent.$root && parent.PRINT_OF_DOM_CLONEDOM) {
+            parent.PRINT_OF_DOM_CLONEDOM.appendChild(clonedNode);
+          }
         }
-        elCache.push(originalNode);
       },
       "childNodes"
     );
@@ -167,7 +175,7 @@ export default class PrintOfDom {
           cssText: "position: static;",
           className: current.className + " print-of-dom__wrap",
         });
-        if (clonedNode.nodeType === Node.ELEMENT_NODE) {
+        if (clonedNode && clonedNode.nodeType === Node.ELEMENT_NODE) {
           if (child) {
             clonedNode.appendChild(child);
           } else {
@@ -224,19 +232,26 @@ export default class PrintOfDom {
       className: originalNode.className,
     };
     if (handler) {
-      rv = handler(originalNode, clonedNode, args) || args;
-      if (rv instanceof Node) {
-        clonedNode = rv;
-      } else {
-        args = rv;
+      rv = handler(originalNode, clonedNode, args);
+      if (rv) {
+        if (rv instanceof Node) {
+          clonedNode = rv;
+        } else if (rv instanceof Object) {
+          args = rv;
+        }
+      } else if (rv === false) {
+        clonedNode = null;
       }
     }
-    if (clonedNode.nodeType === Node.ELEMENT_NODE) {
+    if (clonedNode && clonedNode.nodeType === Node.ELEMENT_NODE) {
       if (args.cssText) {
         clonedNode.style.cssText = args.cssText;
       }
       if (args.className) {
-        clonedNode.className = args.className;
+        // SVG等特殊元素设置 className 会报错
+        try {
+          clonedNode.className = args.className;
+        } catch (err) {}
       }
     }
     return clonedNode;
