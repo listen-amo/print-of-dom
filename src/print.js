@@ -4,18 +4,18 @@ import { eachTree } from "./utils.js";
  */
 export default class PrintOfDom {
   static regExcludeAttr =
-    /^(-webkit-|transition|stroke|scroll|overscroll|cursor|animation|inline-size|pointer-events)/;
+    /^(transition|scroll|overscroll|cursor|animation|inline-size|pointer-events)/;
   static CLASSNAME_IFRAME = "print-of-dom__iframe";
   constructor() {
     this.print = this._print.bind(this);
   }
   /**
    * 打印方法
-   * @param {HTMLElement|String} el - 需要被打印DOM元素 或者 DOM元素的选择器字符串
+   * @param {HTMLElement|String} el - 需要被打印DOM元素 或 选择器字符串
    * @param {Object|printCallback} [options] - 打印配置或者打印回调函数
    * @param {printCallback} [options.handler] - 打印回调函数
-   * @param {Boolean} [options.wrap=false] - 是否需要复制父元素
-   * @param {RegExp} [options.regExcludeAttr=/^(-webkit-|transition|stroke|scroll|overscroll|cursor|animation|inline-size|pointer-events)/] - 转换为行内样式前需要排除的样式正则
+   * @param {Boolean} [options.wrap=false] - 是否需要同时克隆父元素
+   * @param {RegExp} [options.regExcludeAttr=/^(transition|scroll|overscroll|cursor|animation|inline-size|pointer-events)/] - 转换为行内样式前需要排除的样式正则
    * @param {Boolean} [options.debug=false] - 是否开启 debug 模式
    * 如果开启debug模式，则会保留并且显示用于打印而创建的iframe标签
    * 这个iframe是被添加在body的最后
@@ -34,6 +34,13 @@ export default class PrintOfDom {
     } catch (error) {
       Promise.reject(error);
       return;
+    }
+    // html 和 document都被视为body进行打印
+    if (
+      el === this.ownerDocument.documentElement ||
+      el === this.ownerDocument
+    ) {
+      el = this.ownerDocument.body;
     }
 
     // 2. 目标DOM样式，结构相关处理
@@ -105,7 +112,10 @@ export default class PrintOfDom {
     eachTree(
       [dom],
       (originalNode, { parent }) => {
-        if (originalNode.nodeType === 8) {
+        if (
+          originalNode.nodeType === Node.COMMENT_NODE ||
+          originalNode.tagName === "SCRIPT"
+        ) {
           return;
         }
 
@@ -155,7 +165,7 @@ export default class PrintOfDom {
       while (current && current !== body && current !== documentElement) {
         clonedNode = this.handler(current, current.cloneNode(false), {
           cssText: "position: static;",
-          className: "print-of-dom__wrap",
+          className: current.className + " print-of-dom__wrap",
         });
         if (clonedNode.nodeType === Node.ELEMENT_NODE) {
           if (child) {
@@ -192,7 +202,15 @@ export default class PrintOfDom {
       dIframe.contentDocument.documentElement
     );
     this.handler(ownerDocument.body, dIframe.contentDocument.body);
-    dIframe.contentDocument.body.appendChild(child);
+    // body只添加其子节点
+    if (child.nodeName === "BODY") {
+      const childNodes = Array.from(child.childNodes);
+      for (const n of childNodes) {
+        dIframe.contentDocument.body.appendChild(n);
+      }
+    } else {
+      dIframe.contentDocument.body.appendChild(child);
+    }
     return dIframe;
   }
   testExcludeAttr(attr) {
