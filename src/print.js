@@ -134,6 +134,8 @@ export default class PrintOfDom {
           if (!parent.$root && parent.PRINT_OF_DOM_CLONEDOM) {
             parent.PRINT_OF_DOM_CLONEDOM.appendChild(clonedNode);
           }
+        } else { 
+          return "continue";
         }
       },
       "childNodes"
